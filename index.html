@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cryptography ALA — Dhruv Makwana</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a2744;
+    --gold: #c9a84c;
+    --gold-light: #e8cc7a;
+    --cream: #f9f5ee;
+    --parchment: #f0e8d5;
+    --dark-text: #1e1e2e;
+    --mid-text: #4a4a6a;
+    --border: #d4c4a0;
+    --shadow: rgba(26,39,68,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'EB Garamond', serif;
+    background: var(--cream);
+    color: var(--dark-text);
+    min-height: 100vh;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(201,168,76,0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(26,39,68,0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Top ruled border */
+  .top-rule {
+    height: 6px;
+    background: linear-gradient(90deg, var(--navy) 0%, var(--gold) 50%, var(--navy) 100%);
+  }
+
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 60px 40px 50px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  /* Ornamental lines */
+  header::before {
+    content: '';
+    position: absolute;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 1px;
+    background: rgba(201,168,76,0.3);
+  }
+
+  .institution-label {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 20px;
+    opacity: 0.9;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .gold-rule {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+  .gold-rule::before, .gold-rule::after {
+    content: '';
+    height: 1px;
+    width: 80px;
+    background: var(--gold);
+    opacity: 0.6;
+  }
+  .gold-rule .diamond {
+    width: 8px; height: 8px;
+    background: var(--gold);
+    transform: rotate(45deg);
+  }
+
+  .student-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 2.5vw, 26px);
+    color: var(--gold-light);
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+
+  .course-info {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 60px 30px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-heading {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .section-heading h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--navy);
+    margin-bottom: 10px;
+  }
+
+  .section-heading p {
+    color: var(--mid-text);
+    font-size: 17px;
+    font-style: italic;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+    margin-bottom: 60px;
+  }
+
+  .ala-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: 4px solid var(--navy);
+    padding: 36px 32px;
+    position: relative;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .ala-card:hover {
+    box-shadow: 0 12px 40px var(--shadow);
+    transform: translateY(-4px);
+  }
+
+  .ala-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--navy), var(--gold));
+  }
+
+  .card-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--parchment);
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .card-badge {
+    display: inline-block;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--navy);
+    color: var(--gold-light);
+    padding: 4px 12px;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--navy);
+    margin-bottom: 14px;
+    line-height: 1.3;
+  }
+
+  .card-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--mid-text);
+    margin-bottom: 24px;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .tag {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px;
+    padding: 3px 10px;
+    border: 1px solid var(--border);
+    color: var(--mid-text);
+    letter-spacing: 0.5px;
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--navy);
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 2px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .card-link:hover {
+    color: var(--gold);
+  }
+
+  .card-link svg {
+    width: 14px; height: 14px;
+    transition: transform 0.2s;
+  }
+
+  .ala-card:hover .card-link svg {
+    transform: translateX(4px);
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--navy);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 30px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  footer span {
+    color: var(--gold-light);
+  }
+
+  /* Ornament row */
+  .ornament-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 50px;
+  }
+  .ornament-line {
+    flex: 1;
+    max-width: 200px;
+    height: 1px;
+    background: var(--border);
+  }
+  .ornament-text {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 20px;
+  }
+
+  /* Animate in */
+  .ala-card {
+    animation: fadeUp 0.5s ease both;
+  }
+  .ala-card:nth-child(1) { animation-delay: 0.1s; }
+  .ala-card:nth-child(2) { animation-delay: 0.2s; }
+  .ala-card:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-rule"></div>
+
+<header>
+  <div class="institution-label">Applied Cryptography — Laboratory Activities</div>
+  <h1>Cryptography ALA </h1>
+  <div class="gold-rule"><div class="diamond"></div></div>
+  <div class="student-name">Dhruv Makwana</div>
+  <div class="course-info">GMIU &nbsp;|&nbsp; Information Security &nbsp;|&nbsp; 2025–26</div>
+</header>
+
+<main>
+  <div class="ornament-row">
+    <div class="ornament-line"></div>
+    <div class="ornament-text">✦</div>
+    <div class="ornament-line"></div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Applied Laboratory Activities</h2>
+    <p>Select an activity below to view its full documentation and implementation.</p>
+  </div>
+
+  <div class="cards-grid">
+
+    <!-- ALA 1 -->
+    <a class="ala-card" href="ala1.html">
+      <div class="card-number">01</div>
+      <div class="card-badge">ALA 1</div>
+      <div class="card-title">Digital Signature Verifier</div>
+      <div class="card-desc">
+        Implement a Digital Signature System using Python to understand public-key cryptography — key pair generation, message signing, and signature verification with SHA-256 hashing.
+      </div>
+      <div class="card-tags">
+        <span class="tag">RSA</span>
+        <span class="tag">SHA-256</span>
+        <span class="tag">Public-Key Cryptography</span>
+        <span class="tag">Python</span>
+      </div>
+      <span class="card-link">
+        View Activity
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+    <!-- ALA 2 -->
+    <a class="ala-card" href="ala2.html">
+      <div class="card-number">02</div>
+      <div class="card-badge">ALA 2</div>
+      <div class="card-title">SHA Integrity Analyzer</div>
+      <div class="card-desc">
+        Write a program implementing and comparing SHA-1, SHA-256, and SHA-512 algorithms, demonstrating the avalanche effect and exploring the role of hashing in digital signatures.
+      </div>
+      <div class="card-tags">
+        <span class="tag">SHA-1</span>
+        <span class="tag">SHA-256</span>
+        <span class="tag">SHA-512</span>
+        <span class="tag">Avalanche Effect</span>
+      </div>
+      <span class="card-link">
+        View Activity
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+    <!-- ALA 3 -->
+    <a class="ala-card" href="ala3.html">
+      <div class="card-number">03</div>
+      <div class="card-badge">ALA 3</div>
+      <div class="card-title">MAC-Based Message Authentication</div>
+      <div class="card-desc">
+        Design and simulate an HMAC-based Message Authentication Code mechanism with sender and receiver scripts, demonstrating data integrity and authentication using a shared secret key.
+      </div>
+      <div class="card-tags">
+        <span class="tag">HMAC</span>
+        <span class="tag">MAC</span>
+        <span class="tag">Data Integrity</span>
+        <span class="tag">Authentication</span>
+      </div>
+      <span class="card-link">
+        View Activity
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </span>
+    </a>
+
+  </div>
+</main>
+
+<footer>
+  Prepared by <span>Dhruv Makwana</span> &nbsp;·&nbsp; GMIU &nbsp;·&nbsp; Applied Cryptography Laboratory
+</footer>
+
+</body>
+</html>
